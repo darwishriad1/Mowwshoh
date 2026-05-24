@@ -1,0 +1,6 @@
+{
+  "name": "موسوعة قبيلة بن درويش",
+  "description": "موسوعة قبيلة بن درويش الأحمدي العمري - عهد الأجداد ووعد الأحفاد",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
