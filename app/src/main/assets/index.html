@@ -486,6 +486,7 @@
 
     <div class="main-tabs-nav no-print">
         <button class="main-tab-btn active" onclick="switchMainTab('read')">📖 قسم القراءة والمعاينة</button>
+        <button class="main-tab-btn" onclick="switchMainTab('add-ai')">🤖 التنسيق بالذكاء الاصطناعي</button>
         <button class="main-tab-btn" onclick="switchMainTab('edit')">✍️ إضافة صفحات جديدة</button>
         <button class="main-tab-btn" onclick="switchMainTab('settings')">⚙️ الإعدادات العامة</button>
     </div>
@@ -595,6 +596,45 @@
         <div class="book-page"><div class="page-border"><h3>الجد الأكبر طالب بن درويش</h3><p>الفروع الثلاثة الكبرى المكونة للآل: فرع عاطف، فرع عبد، فرع جبران. ويشكلون عماد النسب التاريخي لهذه العشيرة النبيلة العريقة.</p><div class="inner-corner"></div><div class="page-number">٢٦</div></div></div>
         
         <div class="book-page"><div class="page-border"><h3>الفرع الثالث: جبران بن طالب</h3><p>ذريته وتفاصيلها الممتدة في شريان آل بن درويش, الحافظة للعهود والولاء التام لديارهم بيافع العزيزة المظفرة.</p><div class="inner-corner"></div><div class="page-number">٣٣</div></div></div>
+    </div>
+
+    <!-- ========== قسم التنسيق بالذكاء الاصطناعي ========== -->
+    <div id="aiSection" class="section-add-page no-print hidden">
+        <h2 class="section-title">🤖 المنسّق التاريخي الذكي بالذكاء الاصطناعي (Gemini)</h2>
+        <div style="background-color: #f7f3eb; border: 2.5px solid #c5a059; padding: 20px; border-radius: 8px; margin-bottom: 25px; box-shadow: 0 4px 10px rgba(0,0,0,0.04);">
+            <p style="text-indent: 0; font-size: 15px; color: #555; text-align: right; line-height: 1.7; margin-bottom: 0;">
+                الآن يمكنك تدوين وتوثيق تاريخ آل بن درويش بسهولة فائقة! الصق أي معلومات أولية، مذكرات متفرقة، أو حكايات عائلية غامضة، وسيقوم المساعد الذكي بتحليلها وصياغتها بلغة تاريخية عربية رصينة وبليغة، مع تقسيمها تلقائياً إلى صفحات مستقلة ومنسقة بالكامل داخل الموسوعة بناءً على كمية وتفاصيل المعلومات المدخلة.
+            </p>
+        </div>
+
+        <div class="form-group">
+            <label for="aiRawInput" style="font-weight: bold; font-size: 16px; color: #800020; margin-bottom: 10px; display: block;">✍️ اكتب أو الصق معلوماتك التاريخية هنا بأي أسلوب:</label>
+            <textarea id="aiRawInput" class="form-control" rows="10" placeholder="اكتب أو الصق هنا السير، المسودات الشفهية، مآثر الأجداد، أو أي تفاصيل تاريخية غير مرتبة..." required style="width: 100%; border: 2.5px solid #c5a059; border-radius: 6px; padding: 12px; font-family: 'Cairo', sans-serif; font-size: 15px; line-height: 1.6; background-color: #fdfcf7; box-sizing: border-box; resize: vertical;"></textarea>
+        </div>
+
+        <div style="text-align: center; margin-top: 20px; margin-bottom: 20px;">
+            <button id="aiSubmitBtn" type="button" class="btn-submit-page" onclick="triggerAiFormatting()" style="display: inline-flex; justify-content: center; gap: 8px; font-weight: bold; background-color: #800020; color: #fff; border: 2.5px solid #c5a059; padding: 10px 24px; font-size: 16px; cursor: pointer; border-radius: 6px; transition: all 0.2s;">
+                <span>صياغة وتنسيق الصفحات تلقائياً ✨🤖</span>
+            </button>
+        </div>
+
+        <!-- مؤشر العمل والانتظار اللطيف والتفاعلي -->
+        <div id="aiStatusContainer" class="hidden" style="background-color: #fdfcf7; border: 1.5px dashed #800020; padding: 20px; border-radius: 6px; text-align: center; margin-bottom: 25px;">
+            <div class="spinner-animation" style="display: inline-block; width: 35px; height: 35px; border: 4px solid #f3f3f3; border-top: 4px solid #800020; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 12px;"></div>
+            <style>
+                @keyframes spin {
+                    0% { transform: rotate(0deg); }
+                    100% { transform: rotate(360deg); }
+                }
+            </style>
+            <h4 id="aiStatusText" style="color: #800020; margin: 0; font-size: 16px;">جاري الاتصال بخادم الذكاء الاصطناعي لصقل وتنسيق الصفحات... يرجى الانتظار ⏳</h4>
+        </div>
+
+        <!-- صندوق نتائج نجاح العملية -->
+        <div id="aiResultContainer" class="hidden" style="background-color: #e2f0d9; border: 2px solid #70ad47; padding: 18px; border-radius: 6px; margin-bottom: 25px; text-align: right;">
+            <h4 style="color: #385723; margin-top: 0; margin-bottom: 8px; font-weight: bold; font-size: 16px;">🎉 تم التنسيق والدمج بنجاح تام!</h4>
+            <p id="aiResultSummary" style="color: #385723; text-indent: 0; font-size: 14.5px; opacity: 0.9; margin: 0;"></p>
+        </div>
     </div>
 
     <!-- ========== قسم إضافة صفحة جديدة المدمج والتفاعلي ========== -->
@@ -1216,6 +1256,7 @@
 
             // إخفاء جميع الأقسام المحددة
             document.getElementById('bookContainer').classList.add('hidden');
+            document.getElementById('aiSection').classList.add('hidden');
             document.getElementById('editSection').classList.add('hidden');
             document.getElementById('settingsSection').classList.add('hidden');
 
@@ -1223,12 +1264,15 @@
             if (tabName === 'read') {
                 document.getElementById('bookContainer').classList.remove('hidden');
                 document.querySelector('.main-tabs-nav button:nth-child(1)').classList.add('active');
+            } else if (tabName === 'add-ai') {
+                document.getElementById('aiSection').classList.remove('hidden');
+                document.querySelector('.main-tabs-nav button:nth-child(2)').classList.add('active');
             } else if (tabName === 'edit') {
                 document.getElementById('editSection').classList.remove('hidden');
-                document.querySelector('.main-tabs-nav button:nth-child(2)').classList.add('active');
+                document.querySelector('.main-tabs-nav button:nth-child(3)').classList.add('active');
             } else if (tabName === 'settings') {
                 document.getElementById('settingsSection').classList.remove('hidden');
-                document.querySelector('.main-tabs-nav button:nth-child(3)').classList.add('active');
+                document.querySelector('.main-tabs-nav button:nth-child(4)').classList.add('active');
                 updateSettingsStats();
             }
             window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1298,6 +1342,94 @@
                 AndroidDb.printPdf();
             } else {
                 window.print();
+            }
+        }
+
+        // ======= وظائف التنسيق بالذكاء الاصطناعي (Gemini) =======
+        function triggerAiFormatting() {
+            const rawText = document.getElementById('aiRawInput').value.trim();
+            if (!rawText) {
+                alert('الرجاء كتابة أو لصق بعض المعلومات أولاً ليتمكن الذكاء الاصطناعي من تنسيقها!');
+                return;
+            }
+
+            // إخفاء الأزرار ونتائج العمليات السابقة وعرض مؤشر الانتظار
+            document.getElementById('aiSubmitBtn').disabled = true;
+            document.getElementById('aiStatusContainer').classList.remove('hidden');
+            document.getElementById('aiResultContainer').classList.add('hidden');
+
+            if (window.AndroidDb && window.AndroidDb.generatePagesWithAi) {
+                try {
+                    window.AndroidDb.generatePagesWithAi(rawText);
+                } catch(e) {
+                    alert('خطأ أثناء تشفير واستدعاء واجهة الذكاء الاصطناعي: ' + e.message);
+                    resetAiUi();
+                }
+            } else {
+                // في حالة بيئة متصفح عادية (غير الأندرويد)
+                alert('⚠️ خاصية الذكاء الاصطناعي تعمل حصرياً داخل تطبيق الأندرويد باستخدام ملقمات Gemini المدمجة.');
+                resetAiUi();
+            }
+        }
+
+        function resetAiUi() {
+            document.getElementById('aiSubmitBtn').disabled = false;
+            document.getElementById('aiStatusContainer').classList.add('hidden');
+        }
+
+        // استدعاء من خيط جافا (أندرويد) بشكل غير متزامن عند اكتمال جلب البيانات
+        function onAiPagesGenerated(isSuccess, responseText) {
+            resetAiUi();
+
+            if (!isSuccess) {
+                if (responseText === 'API_KEY_MISSING') {
+                    alert('⚠️ مفتاح الذكاء الاصطناعي (GEMINI_API_KEY) لم يتم تهيئته بعد!\n\nيرجى فتح لوحة الأسرار (Secrets panel) في واجهة AI Studio وإضافة مفتاحك بالاسم GEMINI_API_KEY لكي يعمل بنجاح.');
+                } else {
+                    alert('❌ فشل معير الذكاء الاصطناعي:\n' + responseText);
+                }
+                return;
+            }
+
+            try {
+                // الجافا سكريبت يقوم بتحليل النتيجة المرتجعة كـ JSON مصفوفة من الصفحات
+                const pages = JSON.parse(responseText);
+                if (Array.isArray(pages) && pages.length > 0) {
+                    let summaryText = 'تم إنشاء وتنسيق ' + pages.length + ' صفحات تاريخية جديدة وإضافتها للموسوعة:\n';
+                    
+                    pages.forEach((page, index) => {
+                        const newPageObj = {
+                            id: Date.now() + index + Math.floor(Math.random() * 1000), // معرف فريد ومتباعد
+                            title: page.title || 'صفحة منسقة بالذكاء الاصطناعي',
+                            content: page.content || ''
+                        };
+                        appState.addedPages.push(newPageObj);
+                        summaryText += '• ' + newPageObj.title + '\n';
+                    });
+
+                    // حفظ وتحديث الحالة
+                    saveAppState();
+                    applyAppState();
+
+                    // مسح المدخلات وعرض صندوق النجاح
+                    document.getElementById('aiRawInput').value = '';
+                    const resultContainer = document.getElementById('aiResultContainer');
+                    const resultSummary = document.getElementById('aiResultSummary');
+                    resultSummary.textContent = summaryText;
+                    resultContainer.classList.remove('hidden');
+
+                    // توجيه تلقائي لقسم القراءة للاطلاع على الصفحات الجديدة المضافة
+                    setTimeout(() => {
+                        switchMainTab('read');
+                        // التمرير لأسفل الصفحة لرؤية الإضافات الجديدة
+                        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+                    }, 2500);
+
+                } else {
+                    alert('⚠️ تعذر العثور على مصفوفة صفائح صالحة في استجابة الذكاء الاصطناعي. يرجى المحاولة مرة أخرى.');
+                }
+            } catch(e) {
+                console.error("Error parsing AI response JSON", e, responseText);
+                alert('حدث خطأ أثناء قراءة وتوزيع بيانات الصفحات المرتجعة من الذكاء الاصطناعي: ' + e.message);
             }
         }
 

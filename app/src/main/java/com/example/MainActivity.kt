@@ -24,6 +24,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.viewinterop.AndroidView
 import com.example.ui.theme.MyApplicationTheme
+import org.json.JSONArray
+import org.json.JSONObject
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
 
 class MainActivity : ComponentActivity() {
 
@@ -90,8 +96,24 @@ class MainActivity : ComponentActivity() {
 class WebDbInterface(private val context: Context, private val webView: WebView) {
     private val fileName = "darwish_app_state.json"
 
+    private fun findActivity(ctx: Context): Activity? {
+        var currentContext = ctx
+        while (currentContext is android.content.ContextWrapper) {
+            if (currentContext is Activity) {
+                return currentContext
+            }
+            val base = currentContext.baseContext
+            if (base == currentContext || base == null) {
+                break
+            }
+            currentContext = base
+        }
+        return null
+    }
+
     @JavascriptInterface
-    fun saveAppState(stateJson: String) {
+    fun saveAppState(stateJson: String?) {
+        if (stateJson.isNullOrEmpty()) return
         try {
             context.openFileOutput(fileName, Context.MODE_PRIVATE).use { output ->
                 output.write(stateJson.toByteArray(Charsets.UTF_8))
@@ -123,24 +145,147 @@ class WebDbInterface(private val context: Context, private val webView: WebView)
         val mainHandler = android.os.Handler(android.os.Looper.getMainLooper())
         mainHandler.post {
             try {
-                var currentContext = context
-                while (currentContext is android.content.ContextWrapper) {
-                    if (currentContext is Activity) {
-                        break
+                val activity = findActivity(context)
+                if (activity != null) {
+                    val printManager = activity.getSystemService(Context.PRINT_SERVICE) as? android.print.PrintManager
+                    if (printManager != null) {
+                        val jobName = "Darwish_Encyclopedia_Document"
+                        val printAdapter = webView.createPrintDocumentAdapter(jobName)
+                        printManager.print(jobName, printAdapter, android.print.PrintAttributes.Builder().build())
                     }
-                    currentContext = currentContext.baseContext
-                }
-                val activity = currentContext as? Activity
-                val printManager = (activity ?: context).getSystemService(Context.PRINT_SERVICE) as? android.print.PrintManager
-                if (printManager != null) {
-                    val jobName = "Darwish_Encyclopedia_Document"
-                    val printAdapter = webView.createPrintDocumentAdapter(jobName)
-                    printManager.print(jobName, printAdapter, android.print.PrintAttributes.Builder().build())
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
             }
         }
+    }
+
+    @JavascriptInterface
+    fun generatePagesWithAi(rawText: String) {
+        val apiKey = try {
+            BuildConfig.GEMINI_API_KEY
+        } catch (e: Exception) {
+            ""
+        }
+
+        if (apiKey.isEmpty() || apiKey == "MY_GEMINI_API_KEY") {
+            val mainHandler = android.os.Handler(android.os.Looper.getMainLooper())
+            mainHandler.post {
+                webView.evaluateJavascript(
+                    "javascript:onAiPagesGenerated(false, 'API_KEY_MISSING')",
+                    null
+                )
+            }
+            return
+        }
+
+        val mainHandler = android.os.Handler(android.os.Looper.getMainLooper())
+        Thread {
+            try {
+                val okHttpClient = OkHttpClient.Builder()
+                    .connectTimeout(60, java.util.concurrent.TimeUnit.SECONDS)
+                    .readTimeout(60, java.util.concurrent.TimeUnit.SECONDS)
+                    .writeTimeout(60, java.util.concurrent.TimeUnit.SECONDS)
+                    .build()
+
+                val systemPrompt = "أنت مؤرخ خبير ومحرر أدبي رفيع لموسوعة 'آل بن درويش' التاريخية التراثية. مهمتك هي استلام المعلومات التاريخية أو السير أو الحكايات المدخلة، وإعادة صياغتها وتنظيمها وصقلها بلغة عربية فصحى وقورة وممتازة تليق بكتب الأنساب والتاريخ والتراث، ثم تقسيمها إلى صفحات متناسقة ومناسبة تماماً بحسب كمية وحجم المعلومات. يجب أن ترجع النتيجة كـ JSON Array من الصفحات، كل صفحة بها الحقول التالية بالدقة الحرفية:\n1. 'title': عنوان جزيل ومناسب للصفحة (مثال: 'مآثر آل بن درويش في الكرم' أو 'سيرة الشيخ عاطف بن طالب').\n2. 'content': النص السردي المكتوب بعناية فائقة مقسماً ومؤطراً داخل وسوم فقرات HTML قياسية <p>...</p> فقط لكي يظهر متباعداً وجميلاً بداخل الموسوعة.\nلا تضف أي نصوص أو شروح خارج مصفوفة الـ JSON."
+
+                val requestJson = JSONObject().apply {
+                    put("contents", JSONArray().apply {
+                        put(JSONObject().apply {
+                            put("parts", JSONArray().apply {
+                                put(JSONObject().apply {
+                                    put("text", rawText)
+                                })
+                            })
+                        })
+                    })
+                    put("generationConfig", JSONObject().apply {
+                        put("responseMimeType", "application/json")
+                    })
+                    put("systemInstruction", JSONObject().apply {
+                        put("parts", JSONArray().apply {
+                            put(JSONObject().apply {
+                                put("text", systemPrompt)
+                            })
+                        })
+                    })
+                }
+
+                val mediaType = "application/json; charset=utf-8".toMediaTypeOrNull()
+                val body = requestJson.toString().toRequestBody(mediaType)
+                val url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=$apiKey"
+
+                val request = Request.Builder()
+                    .url(url)
+                    .post(body)
+                    .header("Content-Type", "application/json")
+                    .build()
+
+                val response = okHttpClient.newCall(request).execute()
+                if (response.isSuccessful) {
+                    val responseBody = response.body?.string()
+                    if (responseBody != null) {
+                        val responseJson = JSONObject(responseBody)
+                        val candidates = responseJson.optJSONArray("candidates")
+                        val firstCandidate = candidates?.optJSONObject(0)
+                        val content = firstCandidate?.optJSONObject("content")
+                        val parts = content?.optJSONArray("parts")
+                        val firstPart = parts?.optJSONObject(0)
+                        val textResult = firstPart?.optString("text")
+
+                        if (!textResult.isNullOrEmpty()) {
+                            // سنقوم بترميز النص بشكل آمن لتجنب مشكلات الهروب في السلاسل النصية للجافا سكريبت
+                            val escapedText = textResult
+                                .replace("\\", "\\\\")
+                                .replace("'", "\\'")
+                                .replace("\"", "\\\"")
+                                .replace("\r", "\\r")
+                                .replace("\n", "\\n")
+
+                            mainHandler.post {
+                                webView.evaluateJavascript(
+                                    "javascript:onAiPagesGenerated(true, \"$escapedText\")",
+                                    null
+                                )
+                            }
+                        } else {
+                            mainHandler.post {
+                                webView.evaluateJavascript(
+                                    "javascript:onAiPagesGenerated(false, 'المحتوى المرتجع فارغ من الذكاء الاصطناعي')",
+                                    null
+                                )
+                            }
+                        }
+                    } else {
+                        mainHandler.post {
+                            webView.evaluateJavascript(
+                                "javascript:onAiPagesGenerated(false, 'استجابة فارغة من خادم الذكاء الاصطناعي')",
+                                null
+                            )
+                        }
+                    }
+                } else {
+                    val errMsg = "خطأ من ملقم الذكاء الاصطناعي رمز: ${response.code}"
+                    mainHandler.post {
+                        webView.evaluateJavascript(
+                            "javascript:onAiPagesGenerated(false, '$errMsg')",
+                            null
+                        )
+                    }
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                val errorMsg = e.message ?: "حدث خطأ غير متوقع أثناء الاتصال بالذكاء الاصطناعي"
+                val cleanErrorMsg = errorMsg.replace("'", "\\'").replace("\"", "\\\"")
+                mainHandler.post {
+                    webView.evaluateJavascript(
+                        "javascript:onAiPagesGenerated(false, '$cleanErrorMsg')",
+                        null
+                    )
+                }
+            }
+        }.start()
     }
 }
 
