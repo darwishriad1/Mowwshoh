@@ -14,9 +14,32 @@
             box-sizing: border-box;
         }
 
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* شريط التمرير الفاخر بطابع كلاسيكي عنابي ومذهب */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f5f2eb;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #800020;
+            border-radius: 4px;
+            border: 2px solid #f5f2eb;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #c5a059;
+        }
+
         html, body {
-            background-color: #f4f3ef;
+            background: radial-gradient(circle at 50% 50%, #faf8f4 0%, #eeeadf 100%);
             font-family: 'Amiri', serif;
+            color: #2c2520;
+            min-height: 100vh;
         }
 
         @page {
@@ -24,20 +47,27 @@
             margin: 0;
         }
 
-        /* حاوية الصفحات بنفس الهوامش الأصلية */
+        /* حاوية الصفحات بنفس الهوامش الأصلية مع توفير دعم تفاعلي وشاشات الجوال */
         .book-page {
             width: 210mm;
             height: 297mm;
-            margin: 30px auto;
+            margin: 40px auto;
             background-color: #ffffff;
             box-sizing: border-box;
             position: relative;
             page-break-after: always;
             break-after: page;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.06);
+            box-shadow: 0 10px 35px rgba(128, 0, 32, 0.08), 0 4px 15px rgba(0, 0, 0, 0.04);
+            border: 1px solid rgba(197, 160, 89, 0.15);
             padding: 25mm 20mm 20mm 25mm;  /* نفس الهامش الأصلي: أعلى 25، أسفل 20، يمين 20، يسار 25 */
             display: flex;
             flex-direction: column;
+            border-radius: 6px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .book-page:hover {
+            box-shadow: 0 16px 45px rgba(128, 0, 32, 0.12), 0 6px 20px rgba(0, 0, 0, 0.06);
         }
 
         /* غلاف خارجي بدون padding */
@@ -46,7 +76,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            background: #f9f7f2;
+            background: #fcfbf7;
         }
 
         .cover-outer .cover-frame {
@@ -59,11 +89,15 @@
             align-items: center;
             justify-content: center;
             background: #ffffff;
+            box-shadow: inset 0 0 40px rgba(197, 160, 89, 0.08);
+            position: relative;
         }
 
-        /* الإطار التراثي */
+        /* الإطار التراثي المذهب ذو الخطين المتوازيين للجمالية الإمبراطورية */
         .page-border {
             border: 2px solid #c5a059;
+            outline: 1.5px solid rgba(197, 160, 89, 0.35);
+            outline-offset: -6px;
             flex-grow: 1;
             padding: 15mm 12mm;
             box-sizing: border-box;
@@ -71,26 +105,35 @@
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            background-image: radial-gradient(ellipse at center, rgba(197,160,89,0.03) 0%, transparent 70%);
+            background-image: radial-gradient(ellipse at center, rgba(197,160,89,0.04) 0%, transparent 80%);
         }
 
-        /* زوايا الإطار */
+        /* زوايا الإطار التاريخية ذات الطابع المذهب المستوحى من نقوش يافع */
         .page-border::before, .page-border::after,
         .inner-corner::before, .inner-corner::after {
-            content: "✦";
+            content: "❖";
             position: absolute;
             color: #c5a059;
-            font-size: 14px;
+            font-size: 16px;
+            text-shadow: 0 1px 3px rgba(128, 0, 32, 0.2);
+            z-index: 10;
         }
-        .page-border::before { top: 5px; right: 7px; }
-        .page-border::after { top: 5px; left: 7px; }
-        .inner-corner::before { bottom: 5px; right: 7px; }
-        .inner-corner::after { bottom: 5px; left: 7px; }
+        .page-border::before { top: 3px; right: 5px; }
+        .page-border::after { top: 3px; left: 5px; }
+        .inner-corner::before { bottom: 3px; right: 5px; }
+        .inner-corner::after { bottom: 3px; left: 5px; }
 
         /* باقي الأنماط */
-        .basmala { font-size: 24px; color: #800020; text-align: center; margin-bottom: 60px; }
+        .basmala { 
+            font-size: 24px; 
+            color: #800020; 
+            text-align: center; 
+            margin-bottom: 60px; 
+            font-weight: bold;
+            letter-spacing: 0.5px;
+        }
         .title-container { text-align: center; margin-top: 40mm; }
-        h1 { font-size: 36px; color: #800020; margin: 20px 0; font-weight: 700; text-align: center; }
+        h1 { font-size: 36px; color: #800020; margin: 20px 0; font-weight: 700; text-align: center; text-shadow: 0 1px 1px rgba(0,0,0,0.05); }
         h2 { font-size: 22px; color: #c5a059; margin-top: 10px; font-weight: 400; text-align: center; }
         h3 { font-size: 24px; color: #800020; text-align: center; margin-bottom: 25px; font-weight: 700; }
         h3::after { content: "❖ ❖ ❖"; display: block; font-size: 11px; color: #c5a059; margin-top: 6px; }
@@ -100,9 +143,9 @@
         .quote-style { font-size: 21px; text-align: center; color: #3d352e; line-height: 2.2; text-indent: 0; font-style: italic; }
         .author-sign { text-align: left; margin-top: 20px; font-weight: bold; color: #800020; font-size: 18px; }
         .chapters-list { list-style: none; padding: 0; margin: auto 0; }
-        .chapters-list li { padding: 15px 20px; background: #faf8f5; margin-bottom: 15px; border-right: 5px solid #800020; font-size: 18px; border-radius: 0 6px 6px 0; }
+        .chapters-list li { padding: 15px 20px; background: #faf8f5; margin-bottom: 15px; border-right: 5px solid #800020; font-size: 18px; border-radius: 0 6px 6px 0; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
         .chapters-list strong { color: #800020; font-size: 20px; }
-        .page-number { text-align: center; font-size: 16px; color: #c5a059; margin-top: 10px; }
+        .page-number { text-align: center; font-size: 16px; color: #c5a059; margin-top: 10px; font-weight: bold; }
 
         .cover-outer .cover-frame .cover-title {
             font-size: 42px;
@@ -131,8 +174,8 @@
             flex-shrink: 0;
             width: 140px;
             height: 160px;
-            background-color: #f0ede6;
-            border: 1px dashed #c5a059;
+            background-color: #f7f5ed;
+            border: 2px dashed #c5a059;
             border-radius: 8px;
             display: flex;
             flex-direction: column;
@@ -145,6 +188,12 @@
             margin-bottom: 15px;
             cursor: pointer;
             overflow: hidden;
+            transition: all 0.3s;
+        }
+        .image-placeholder:hover {
+            background-color: #f0ede5;
+            border-style: solid;
+            box-shadow: 0 4px 10px rgba(197, 160, 89, 0.15);
         }
         .image-placeholder img { width: 100%; height: 100%; object-fit: cover; border-radius: 6px; }
         .person-bio-flex { display: flex; flex-wrap: wrap; gap: 20px; }
@@ -153,30 +202,96 @@
         /* الأزرار العائمة */
         .floating-buttons {
             position: fixed;
-            bottom: 20px;
-            left: 20px;
+            bottom: 25px;
+            left: 25px;
             z-index: 1000;
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 15px;
         }
         .settings-btn {
-            background-color: #800020;
+            background: linear-gradient(135deg, #800020 0%, #560015 100%);
             color: white;
-            border: none;
+            border: 2.5px solid #c5a059;
             border-radius: 50%;
             width: 60px;
             height: 60px;
             font-size: 26px;
             cursor: pointer;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            box-shadow: 0 6px 20px rgba(128, 0, 32, 0.25);
             display: flex;
             align-items: center;
             justify-content: center;
             font-family: 'Cairo', sans-serif;
-            transition: transform 0.2s;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
-        .settings-btn:hover { transform: scale(1.05); background-color: #a00028; }
+        .settings-btn:hover {
+            transform: translateY(-5px) scale(1.08);
+            background: linear-gradient(135deg, #a00028 0%, #6e001b 100%);
+            box-shadow: 0 10px 25px rgba(128, 0, 32, 0.4);
+            border-color: #ffffff;
+        }
+
+        /* ميديا كويري لدعم شاشات الهواتف بذكاء وسلاسة تامة دون التأثير على جودة طباعة PDF */
+        @media screen and (max-width: 850px) {
+            .book-page {
+                width: 95%;
+                height: auto;
+                min-height: 297mm;
+                margin: 15px auto;
+                padding: 18px 12px 12px 18px;
+                box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            }
+            .page-border {
+                padding: 16px 12px;
+                border-width: 1.5px;
+                outline-width: 1px;
+                outline-offset: -4px;
+            }
+            .basmala {
+                font-size: 20px;
+                margin-bottom: 30px;
+            }
+            .title-container {
+                margin-top: 15mm;
+            }
+            h1 {
+                font-size: 28px;
+            }
+            h2 {
+                font-size: 18px;
+            }
+            h3 {
+                font-size: 20px;
+            }
+            p {
+                font-size: 16.5px;
+                line-height: 1.8;
+                text-indent: 15px;
+                margin-bottom: 12px;
+            }
+            .class-list li {
+                padding: 10px 12px;
+                font-size: 15px;
+            }
+            .person-bio-flex {
+                flex-direction: column;
+                align-items: center;
+            }
+            .image-placeholder {
+                margin: 0 0 15px 0 !important;
+                width: 120px;
+                height: 140px;
+            }
+            .rights-text {
+                font-size: 15.5px;
+                line-height: 2.2;
+            }
+            .quote-style {
+                font-size: 18px;
+                line-height: 2;
+            }
+        }
 
         /* إعدادات الطباعة: الحفاظ على الهوامش نفسها */
         @media print {
@@ -217,40 +332,63 @@
             top: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0,0,0,0.7);
+            background-color: rgba(26, 15, 10, 0.75);
+            backdrop-filter: blur(4px);
             justify-content: center;
             align-items: center;
             font-family: 'Cairo', sans-serif;
+            transition: all 0.3s;
         }
         .modal-content {
-            background-color: #fff9f0;
+            background-color: #fdfbf7;
             border: 2px solid #c5a059;
+            outline: 1px solid rgba(197, 160, 89, 0.3);
+            outline-offset: -5px;
             border-radius: 12px;
             width: 95%;
             max-width: 1100px;
             height: 85%;
-            padding: 20px;
+            padding: 25px;
             display: flex;
             flex-direction: column;
+            box-shadow: 0 15px 45px rgba(0,0,0,0.3);
+        }
+        .modal-content h3 {
+            font-size: 20px;
+            color: #800020;
+            margin-bottom: 12px;
+            text-align: right;
+            border-bottom: 2px solid rgba(197, 160, 89, 0.2);
+            padding-bottom: 8px;
         }
         .toolbar {
             display: flex;
             flex-wrap: wrap;
             gap: 8px;
             margin-bottom: 15px;
-            padding: 8px;
-            background: #f0ede6;
+            padding: 10px;
+            background: #fbf9f2;
             border-radius: 8px;
-            border: 1px solid #c5a059;
+            border: 1.5px solid #e8dec9;
         }
         .toolbar button, .toolbar label {
-            background: white;
-            border: 1px solid #c5a059;
-            border-radius: 5px;
-            padding: 6px 12px;
+            background: #ffffff;
+            border: 1.5px solid #c5a059;
+            border-radius: 6px;
+            padding: 6px 14px;
             cursor: pointer;
             font-family: 'Cairo', sans-serif;
-            font-size: 14px;
+            font-size: 13.5px;
+            font-weight: bold;
+            color: #800020;
+            transition: all 0.2s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+        .toolbar button:hover, .toolbar label:hover {
+            background: #800020;
+            color: #ffffff;
+            border-color: #800020;
+            transform: translateY(-1px);
         }
         .toolbar input { display: none; }
         .title-field {
@@ -261,25 +399,33 @@
             margin-bottom: 6px;
             font-weight: bold;
             color: #800020;
+            font-size: 15px;
         }
         .title-field input, .editor-area {
             width: 100%;
-            padding: 8px;
-            border: 1px solid #c5a059;
-            border-radius: 6px;
+            padding: 12px;
+            border: 1.5px solid #e8dec9;
+            border-radius: 8px;
             font-family: 'Amiri', serif;
+            background-color: #ffffff;
+            transition: all 0.3s;
+        }
+        .title-field input:focus, .editor-area:focus {
+            border-color: #800020;
+            outline: none;
+            box-shadow: 0 0 0 4px rgba(128,0,32,0.15);
         }
         .title-field input {
             font-size: 18px;
         }
         .editor-area {
             flex: 1;
-            background: #fffef8;
+            background: #fffdf9;
             overflow-y: auto;
             font-size: 18px;
             line-height: 1.8;
             direction: rtl;
-            padding: 12px;
+            padding: 15px;
             outline: none;
         }
         .modal-buttons {
@@ -288,29 +434,50 @@
             margin-top: 15px;
         }
         .modal-buttons button {
-            background-color: #800020;
+            background: linear-gradient(135deg, #800020 0%, #560015 100%);
             color: white;
-            border: none;
-            padding: 10px 24px;
+            border: 1px solid #c5a059;
+            padding: 10px 30px;
             border-radius: 30px;
             cursor: pointer;
             font-family: 'Cairo', sans-serif;
-            font-size: 16px;
+            font-size: 15px;
+            font-weight: bold;
+            transition: all 0.2s;
+            box-shadow: 0 4px 10px rgba(128, 0, 32, 0.2);
         }
-        .modal-buttons button.cancel { background-color: #777; }
-
-        /* قسم إضافة صفحة جديدة المدمج */
+        .modal-buttons button:hover {
+            transform: translateY(-1px);
+            background: linear-gradient(135deg, #a00028 0%, #6e001b 100%);
+            box-shadow: 0 6px 15px rgba(128, 0, 32, 0.3);
+        }
+        .modal-buttons button.cancel { 
+            background: #666; 
+            border-color: #888;
+        }
+        .modal-buttons button.cancel:hover {
+            background: #555;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+        }
+ 
+        /* قسم إضافة صفحة جديدة المدمج والتعديلات بجمالية فريدة */
         .section-add-page {
-            width: 100%;
-            max-width: 800px;
+            width: 95%;
+            max-width: 850px;
             margin: 40px auto;
             background-color: #ffffff;
             border: 2px solid #c5a059;
+            outline: 1.5px solid rgba(197, 160, 89, 0.35);
+            outline-offset: -6px;
             border-radius: 12px;
-            box-shadow: 0 6px 20px rgba(0,0,0,0.08);
-            padding: 30px 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+            padding: 35px 30px;
             direction: rtl;
             font-family: 'Cairo', sans-serif;
+            transition: all 0.3s;
+        }
+        .section-add-page:hover {
+            box-shadow: 0 15px 40px rgba(128,0,32,0.08);
         }
         .section-add-page h2.section-title {
             color: #800020;
@@ -338,23 +505,27 @@
         }
         .form-control {
             width: 100%;
-            padding: 12px;
-            border: 1px solid #c5a059;
+            padding: 12px 15px;
+            border: 1.5px solid #e8dec9;
             border-radius: 8px;
-            background-color: #fffdf9;
+            background-color: #fffdfc;
             font-family: 'Amiri', serif;
             font-size: 18px;
             color: #2c2520;
             outline: none;
-            transition: border-color 0.2s, box-shadow 0.2s;
+            transition: all 0.3s ease;
         }
         .form-control:focus {
             border-color: #800020;
-            box-shadow: 0 0 0 3px rgba(128,0,32,0.1);
+            background-color: #ffffff;
+            box-shadow: 0 0 0 4px rgba(128,0,32,0.1);
         }
         select.form-control {
             font-family: 'Cairo', sans-serif;
-            font-size: 16px;
+            font-size: 15px;
+            font-weight: bold;
+            color: #2c2520;
+            background-color: #fffdfc;
         }
         .form-row {
             display: flex;
@@ -374,108 +545,121 @@
         }
         .custom-file-upload {
             display: inline-block;
-            padding: 10px 20px;
+            padding: 10px 22px;
             cursor: pointer;
-            background-color: #f0ede6;
-            border: 1px dashed #c5a059;
+            background-color: #faf7ed;
+            border: 1.5px dashed #c5a059;
             border-radius: 8px;
-            font-size: 15px;
+            font-size: 14px;
             color: #800020;
             font-weight: bold;
-            transition: all 0.2s;
+            transition: all 0.3s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
         }
         .custom-file-upload:hover {
             background-color: #e8dec9;
+            border-style: solid;
+            color: #560015;
         }
         .upload-preview {
             width: 100px;
             height: 120px;
-            border: 1px solid #c5a059;
+            border: 1.5px solid #c5a059;
             border-radius: 6px;
             display: none;
             object-fit: cover;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         }
         .btn-submit-page {
-            background-color: #800020;
+            background: linear-gradient(135deg, #800020 0%, #560015 100%);
             color: white;
-            border: none;
+            border: 1.5px solid #c5a059;
             border-radius: 30px;
             padding: 12px 35px;
-            font-size: 18px;
+            font-size: 16px;
             font-weight: bold;
             cursor: pointer;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-            transition: all 0.2s;
+            box-shadow: 0 6px 20px rgba(128, 0, 32, 0.2);
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.15);
             font-family: 'Cairo', sans-serif;
             display: inline-flex;
             align-items: center;
             gap: 8px;
         }
         .btn-submit-page:hover {
-            background-color: #a00028;
+            background: linear-gradient(135deg, #a00028 0%, #6e001b 100%);
             transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(128, 0, 32, 0.3);
+            border-color: #ffffff;
         }
         .btn-submit-page:active {
             transform: translateY(0);
         }
         .btn-reset {
-            background-color: #777;
-            color: white;
-            border: none;
+            background-color: #faf7ee;
+            color: #800020;
+            border: 1.5px solid #e8dec9;
             border-radius: 30px;
             padding: 12px 25px;
-            font-size: 16px;
+            font-size: 15px;
+            font-weight: bold;
             cursor: pointer;
             transition: all 0.2s;
             font-family: 'Cairo', sans-serif;
         }
         .btn-reset:hover {
-            background-color: #555;
+            background-color: #eae3d2;
+            color: #560015;
+            border-color: #c5a059;
         }
         .form-notice {
-            font-size: 14px;
-            color: #666;
+            font-size: 13.5px;
+            color: #777;
             margin-top: -5px;
             margin-bottom: 15px;
             display: block;
         }
-
+ 
         /* شريط التنقل الرئيسي للتبويبات */
         .main-tabs-nav {
             position: sticky;
             top: 0;
             z-index: 1500;
-            background-color: #800020;
-            border-bottom: 3px solid #c5a059;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            background: linear-gradient(135deg, #800020 0%, #4a0012 100%);
+            border-bottom: 4px solid #c5a059;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
             display: flex;
             justify-content: space-around;
-            padding: 10px 0;
+            padding: 12px 10px;
             direction: rtl;
             font-family: 'Cairo', sans-serif;
         }
         .main-tab-btn {
             background: transparent;
             border: none;
-            color: #e8dec9;
-            font-size: 14px;
+            color: #f7f3eb;
+            opacity: 0.85;
+            font-size: 13.5px;
             font-weight: bold;
-            padding: 8px 16px;
+            padding: 8px 18px;
             cursor: pointer;
             border-radius: 20px;
-            transition: all 0.2s;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex;
             align-items: center;
             gap: 6px;
         }
         .main-tab-btn.active {
             background-color: #c5a059;
-            color: #800020;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            color: #4a0012;
+            opacity: 1;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+            transform: translateY(-1px);
         }
         .main-tab-btn:hover:not(.active) {
+            opacity: 1;
             color: #ffffff;
-            background-color: rgba(197, 160, 89, 0.15);
+            background-color: rgba(197, 160, 89, 0.25);
         }
         .hidden {
             display: none !important;
