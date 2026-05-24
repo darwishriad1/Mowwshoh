@@ -287,6 +287,147 @@ class WebDbInterface(private val context: Context, private val webView: WebView)
             }
         }.start()
     }
+
+    @JavascriptInterface
+    fun organizeBookWithAi(pagesJson: String) {
+        val apiKey = try {
+            BuildConfig.GEMINI_API_KEY
+        } catch (e: Exception) {
+            ""
+        }
+
+        if (apiKey.isEmpty() || apiKey == "MY_GEMINI_API_KEY") {
+            val mainHandler = android.os.Handler(android.os.Looper.getMainLooper())
+            mainHandler.post {
+                webView.evaluateJavascript(
+                    "javascript:onBookOrganized(false, 'API_KEY_MISSING')",
+                    null
+                )
+            }
+            return
+        }
+
+        val mainHandler = android.os.Handler(android.os.Looper.getMainLooper())
+        Thread {
+            try {
+                val okHttpClient = OkHttpClient.Builder()
+                    .connectTimeout(60, java.util.concurrent.TimeUnit.SECONDS)
+                    .readTimeout(60, java.util.concurrent.TimeUnit.SECONDS)
+                    .writeTimeout(60, java.util.concurrent.TimeUnit.SECONDS)
+                    .build()
+
+                val systemPrompt = """
+                    أنت خبير فني ومؤرخ في تنظيم وتبويب المخطوطات والكتب التاريخية الكبرى لقبيلة آل بن درويش العمري.
+                    مهمتك السامية هي استلام مصفوفة صفحات الكتاب المدخلة بصيغة JSON، قراءة عنوان ومحتوى كل صفحة بدقة، ثم القيام بما يلي:
+                    1. تصنيف كل صفحة تلقائياً في المكان الأنسب لها بوضع قيمة مفتاح 'chapter' لتكون واحدة من القيم التالية حصراً:
+                       - 'intro' (تمهيد ومقدمات ومراجعات الكتاب العامة)
+                       - 'chapter1' (الباب الأول: الجذور والرجال - مخصص لتراجم وسير فرسان ورموز آل بن درويش)
+                       - 'genealogy' (شجرة النسب والفرع - لتوثيقات النسب وسلاسل الأجداد والفروع)
+                       - 'chapter2' (الباب الثاني: العرف والنظام القبلي - للعهود، المواثيق، الدساتير والأنظمة الداخلية)
+                       - 'chapter3' (الباب الثالث: الأرض والديار - للجغرافيا، مواطن الأجداد بيافع، الحصون والأراضي التاريخية)
+                       - 'chapter4' (الباب الرابع: ملامح من زمان الأجداد - للحكايات القديمة، المعارك، البطولات والمآثر التاريخية المروية)
+                    2. إعادة ترتيب الصفحات بشكل منطقي وسلس ومتسلسل يضمن انتقال القارئ بينها بانسجام.
+                    3. صقل العناوين والمحتويات بلطف وإتقان لإعطائها طابعاً جليلاً ووقوراً فصيحاً دون تدمير التفاصيل الأصلية.
+                    4. يجب إرجاع النتيجة كمصفوفة JSON صالحة بالكامل ومطابقة للمصفوفة المدخلة، مع تزويد كل صفحة بحقل 'chapter' المحدث وجعلها مرتبة ترتيباً صحيحاً.
+                    لا تضف أي شرح أو تنسيق خارج مصفوفة الـ JSON على الإطلاق.
+                """.trimIndent()
+
+                val requestJson = JSONObject().apply {
+                    put("contents", JSONArray().apply {
+                        put(JSONObject().apply {
+                            put("parts", JSONArray().apply {
+                                put(JSONObject().apply {
+                                    put("text", pagesJson)
+                                })
+                            })
+                        })
+                    })
+                }
+                requestJson.put("generationConfig", JSONObject().apply {
+                    put("responseMimeType", "application/json")
+                })
+                requestJson.put("systemInstruction", JSONObject().apply {
+                    put("parts", JSONArray().apply {
+                        put(JSONObject().apply {
+                            put("text", systemPrompt)
+                        })
+                    })
+                })
+
+                val mediaType = "application/json; charset=utf-8".toMediaTypeOrNull()
+                val body = requestJson.toString().toRequestBody(mediaType)
+                val url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=$apiKey"
+
+                val request = Request.Builder()
+                    .url(url)
+                    .post(body)
+                    .header("Content-Type", "application/json")
+                    .build()
+
+                val response = okHttpClient.newCall(request).execute()
+                if (response.isSuccessful) {
+                    val responseBody = response.body?.string()
+                    if (responseBody != null) {
+                        val responseJson = JSONObject(responseBody)
+                        val candidates = responseJson.optJSONArray("candidates")
+                        val firstCandidate = candidates?.optJSONObject(0)
+                        val content = firstCandidate?.optJSONObject("content")
+                        val parts = content?.optJSONArray("parts")
+                        val firstPart = parts?.optJSONObject(0)
+                        val textResult = firstPart?.optString("text")
+
+                        if (!textResult.isNullOrEmpty()) {
+                            val escapedText = textResult
+                                .replace("\\", "\\\\")
+                                .replace("'", "\\'")
+                                .replace("\"", "\\\"")
+                                .replace("\r", "\\r")
+                                .replace("\n", "\\n")
+
+                            mainHandler.post {
+                                webView.evaluateJavascript(
+                                    "javascript:onBookOrganized(true, \"$escapedText\")",
+                                    null
+                                )
+                            }
+                        } else {
+                            mainHandler.post {
+                                webView.evaluateJavascript(
+                                    "javascript:onBookOrganized(false, 'المحتوى المرتجع فارغ من الذكاء الاصطناعي')",
+                                    null
+                                )
+                            }
+                        }
+                    } else {
+                        mainHandler.post {
+                            webView.evaluateJavascript(
+                                "javascript:onBookOrganized(false, 'استجابة فارغة من خادم الذكاء الاصطناعي')",
+                                null
+                            )
+                        }
+                    }
+                } else {
+                    val errMsg = "خطأ من ملقم الذكاء الاصطناعي رمز: ${response.code}"
+                    mainHandler.post {
+                        webView.evaluateJavascript(
+                            "javascript:onBookOrganized(false, '$errMsg')",
+                            null
+                        )
+                    }
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                val errorMsg = e.message ?: "حدث خطأ غير متوقع أثناء ترتيب الموسوعة بالذكاء الاصطناعي"
+                val cleanErrorMsg = errorMsg.replace("'", "\\'").replace("\"", "\\\"")
+                mainHandler.post {
+                    webView.evaluateJavascript(
+                        "javascript:onBookOrganized(false, '$cleanErrorMsg')",
+                        null
+                    )
+                }
+            }
+        }.start()
+    }
 }
 
 @Composable

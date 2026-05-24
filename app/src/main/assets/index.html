@@ -696,9 +696,22 @@
                 <input type="file" id="imageUploadLocal" accept="image/*">
                 <button type="button" onclick="formatDoc('removeFormat')">❌ مسح</button>
             </div>
-            <div class="title-field">
-                <label>عنوان الصفحة الرئيسي</label>
-                <input type="text" id="pageTitle" placeholder="مثال: سيرة شخصية إضافية أو فصل متمم">
+            <div class="form-row" style="display: flex; gap: 15px; margin-bottom: 12px; margin-top: 5px; direction: rtl;">
+                <div class="form-group" style="flex: 1; text-align: right;">
+                    <label style="font-weight: bold; color: #800020; margin-bottom: 5px; display: block;">عنوان الصفحة الرئيسي</label>
+                    <input type="text" id="pageTitle" placeholder="مثال: سيرة شخصية إضافية أو فصل متمم" style="width: 100%; padding: 10px; border: 1.5px solid #e8dec9; border-radius: 8px; font-family: 'Amiri', serif; font-size: 18px; background-color: #ffffff; box-sizing: border-box;">
+                </div>
+                <div class="form-group" style="width: 280px; text-align: right;">
+                    <label style="font-weight: bold; color: #800020; margin-bottom: 5px; display: block;">الباب / الفصل المخصص</label>
+                    <select id="pageChapter" style="width: 100%; padding: 10px; border: 1.5px solid #e8dec9; border-radius: 8px; font-family: 'Cairo', sans-serif; font-size: 14px; background-color: #ffffff; box-sizing: border-box; font-weight: bold;">
+                        <option value="chapter1">الباب الأول: الجذور والرجال (السير)</option>
+                        <option value="genealogy">شجرة النسب والفرع (الأنساب)</option>
+                        <option value="chapter2">الباب الثاني: العرف والنظام القبلي</option>
+                        <option value="chapter3">الباب الثالث: الأرض والديار</option>
+                        <option value="chapter4">الباب الرابع: ملامح من زمان الأجداد</option>
+                        <option value="intro">تمهيد ومقدمات ومراجعات الكتاب</option>
+                    </select>
+                </div>
             </div>
             <div id="editor" class="editor-area" contenteditable="true">
                 اكتب هنا محتوى الصفحة... يمكنك استخدام أزرار التنسيق الموضحة أعلاه.
@@ -819,6 +832,38 @@
             <h4 style="color: #385723; margin-top: 0; margin-bottom: 8px; font-weight: bold; font-size: 16px;">🎉 تم التنسيق والدمج بنجاح تام!</h4>
             <p id="aiResultSummary" style="color: #385723; text-indent: 0; font-size: 14.5px; opacity: 0.9; margin: 0;"></p>
         </div>
+
+        <!-- الجزء الثاني: ترتيب وهيكلة الموسوعة بالكامل بذكاء الاصطناعي -->
+        <div style="border-top: 2.5px dashed #c5a059; margin-top: 35px; padding-top: 25px;">
+            <h3 style="color: #800020; font-family: 'Cairo', sans-serif; text-align: right; margin-top:0; margin-bottom: 15px; font-size: 21px; display: flex; align-items: center; justify-content: flex-start; gap: 8px;">
+                <span>📚 المُرتّب والمنظّم التاريخي الذكي للمخطوطة</span>
+            </h3>
+            <div style="background-color: #f7f3eb; border: 2px solid #c5a059; padding: 18px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.03); text-align: right;">
+                <p style="text-indent: 0; font-size: 14.5px; color: #5c5243; line-height: 1.7; margin: 0;">
+                    إذا قمت بتدوين صفحات متعددة أو تراجم مبعثرة للقبيلة وتريد إعادة تنظيمها فورا لتكون مرتبة تحت أبواب الكتاب بشكل سليم وصحيح؛ فاضغط الزر أدناه. سيقوم الذكاء الاصطناعي (Gemini) بقراءة كافة محتويات وعناوين الصفحات المضافة وتصنيفها تلقائياً تحت أحد فصول الكتاب (الجذور والرجال، شجرة النسب، العرف القبلي، ديار القبيلة، أو حكايات الأجداد) مع إعادة ترتيبها تاريخياً لتصبح كأنها كتاب تاريخي مطبوع ذو تسلسل رصين ومستدام!
+                </p>
+            </div>
+
+            <div style="text-align: center; margin-bottom: 10px;">
+                <button id="aiOrganizeBtn" type="button" class="btn-submit-page" onclick="triggerAiOrganization()" style="display: inline-flex; justify-content: center; align-items: center; gap: 8px; font-weight: bold; background: linear-gradient(135deg, #800020 0%, #4a0012 100%); color: #fff; border: 2.5px solid #c5a059; padding: 12px 28px; font-size: 16px; cursor: pointer; border-radius: 30px; transition: all 0.3s; box-shadow: 0 5px 15px rgba(128, 0, 32, 0.25);">
+                    <span>🪄 إعادة هيكلة وترتيب كتاب الموسوعة بالكامل 🤖</span>
+                </button>
+            </div>
+
+            <!-- مؤشر عمل الترتيب -->
+            <div id="aiOrgStatusContainer" class="hidden" style="background-color: #fdfcf7; border: 1.5px dashed #800020; padding: 20px; border-radius: 6px; text-align: center; margin-top: 15px;">
+                <div class="spinner-animation" style="display: inline-block; width: 35px; height: 35px; border: 4px solid #f3f3f3; border-top: 4px solid #c5a059; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 12px;"></div>
+                <h4 id="aiOrgStatusText" style="color: #800020; margin: 0; font-size: 15.5px;">جاري تحليل السير والحكايات وإعادة صياغة وفهرسة دفتي الكتاب بذكاء... الرجاء الانتظار ⏳</h4>
+            </div>
+
+            <!-- صندوق نجاح الترتيب -->
+            <div id="aiOrgResultContainer" class="hidden" style="background-color: #e2f0d9; border: 2px solid #70ad47; padding: 18px; border-radius: 6px; margin-top: 15px; text-align: right;">
+                <h4 style="color: #385723; margin-top: 0; margin-bottom: 8px; font-weight: bold; font-size: 16px;">🎉 تم إعادة تنظيم وتبويب المخطوطة بالذكاء الاصطناعي!</h4>
+                <p style="color: #385723; text-indent: 0; font-size: 14.5px; opacity: 0.9; margin: 0;">
+                    لقد قام المنسق الآلي بتنصيف وترتيب الصفحات في مواقعها الصحيحة تحت فصول الكتاب الستة وأبوابه الرئيسية، وتحديث الفهرسة والأرقام تلقائياً بشكل فوري! تصفح الكتاب الآن لتشاهد التغيير.
+                </p>
+            </div>
+        </div>
     </div>
 
     <!-- ========== قسم إضافة صفحة جديدة المدمج والتفاعلي ========== -->
@@ -826,14 +871,25 @@
         <h2 class="section-title">✨ إضافة صفحة جديدة مباشرة للموسوعة</h2>
         <form id="inlineAddPageForm" onsubmit="event.preventDefault();">
             <div class="form-row">
-                <div class="form-group">
+                <div class="form-group" style="flex: 1;">
                     <label for="inlinePageType">نوع الصفحة وتنسيقها</label>
                     <select id="inlinePageType" class="form-control" onchange="toggleFormType()">
                         <option value="standard">صفحة نصية سردية (فقرات متبوعة بنص متباعد)</option>
                         <option value="bio">سرد لشخصية تاريخية / معاصرة (صورة شخصية + نبذة)</option>
                     </select>
                 </div>
-                <div class="form-group">
+                <div class="form-group" style="flex: 1;">
+                    <label for="inlinePageChapter">الباب / الفصل المخصص</label>
+                    <select id="inlinePageChapter" class="form-control">
+                        <option value="chapter1">الباب الأول: الجذور والرجال (السير)</option>
+                        <option value="genealogy">شجرة النسب والفرع (الأنساب)</option>
+                        <option value="chapter2">الباب الثاني: العرف والنظام القبلي</option>
+                        <option value="chapter3">الباب الثالث: الأرض والديار</option>
+                        <option value="chapter4">الباب الرابع: ملامح من زمان الأجداد</option>
+                        <option value="intro">تمهيد ومقدمات ومراجعات الكتاب</option>
+                    </select>
+                </div>
+                <div class="form-group" style="flex: 1.5;">
                     <label for="inlinePageTitle">عنوان الصفحة / الاسم الكريم</label>
                     <input type="text" id="inlinePageTitle" class="form-control" placeholder="مثال: سيرة الأستاذ عبد بن طالب درويش" required>
                 </div>
@@ -978,6 +1034,7 @@
             images: {},       // id -> base64 string
             addedPages: []    // array of objects: { id, title, content }
         };
+        let originalStaticPages = [];
 
         // وظائف إدارة قسم فورم الإضافة البديهي الجديد
         let inlineImageBase64 = null;
@@ -1088,10 +1145,13 @@
             }
 
             // إنشاء كائن صفحة جديدة وحفظه
+            const inlineChSelect = document.getElementById('inlinePageChapter');
+            const chapterVal = inlineChSelect ? inlineChSelect.value : 'chapter1';
             const newPageObj = {
                 id: Date.now(),
                 title: title,
-                content: finalContent
+                content: finalContent,
+                chapter: chapterVal
             };
 
             appState.addedPages.push(newPageObj);
@@ -1199,6 +1259,8 @@
             currentEditingPageId = null;
             titleInput.value = '';
             editorDiv.innerHTML = 'اكتب هنا محتوى الصفحة...';
+            const pageChap = document.getElementById('pageChapter');
+            if (pageChap) pageChap.value = 'chapter1';
             document.querySelector('#addPageModal h3').textContent = '📝 محرر الموسوعة - إضافة صفحة جديدة';
             confirmBtn.textContent = 'تأكيد وإضافة الصفحة';
             modal.style.display = 'flex';
@@ -1214,12 +1276,16 @@
             if(!title) title = "صفحة جديدة";
             if(!content) content = "<p>لا يوجد محتوى</p>";
 
+            const pageChap = document.getElementById('pageChapter');
+            const chapterVal = pageChap ? pageChap.value : 'chapter1';
+
             if (currentEditingPageId === null) {
                 // إضافة جديدة
                 const newPageObj = {
                     id: Date.now(),
                     title: title,
-                    content: content
+                    content: content,
+                    chapter: chapterVal
                 };
                 appState.addedPages.push(newPageObj);
             } else {
@@ -1228,6 +1294,7 @@
                 if (idx !== -1) {
                     appState.addedPages[idx].title = title;
                     appState.addedPages[idx].content = content;
+                    appState.addedPages[idx].chapter = chapterVal;
                 }
             }
 
@@ -1244,6 +1311,11 @@
             currentEditingPageId = id;
             titleInput.value = page.title;
             editorDiv.innerHTML = page.content;
+
+            const pageChap = document.getElementById('pageChapter');
+            if (pageChap) {
+                pageChap.value = page.chapter || 'chapter1';
+            }
 
             document.querySelector('#addPageModal h3').textContent = '📝 محرر الموسوعة - تعديل صفحة';
             confirmBtn.textContent = 'حفظ التعديلات';
@@ -1303,16 +1375,148 @@
 
         // رسم وعرض مكونات البيانات المخزنة
         function applyAppState() {
-            // 1. إزالة الصفحات المضافة سابقاً من المستند لتجنب التكرار
-            const dynamicPages = document.querySelectorAll('#bookContainer .book-page.dynamic-page');
-            dynamicPages.forEach(el => el.remove());
+            const bookContainer = document.getElementById('bookContainer');
+            if (!bookContainer) return;
 
-            // 2. بناء وإدخال الصفحات المخزنة
+            // إذا لم يتم الاحتفاظ بالنسخ الأصلية لسبب ما، نملأها الآن لتجنب أي تصفير مفاجئ
+            if (originalStaticPages.length === 0) {
+                const kids = Array.from(bookContainer.children);
+                kids.forEach((child, index) => {
+                    let type = 'intro';
+                    if (index >= 8 && index <= 17) {
+                        type = 'chapter1';
+                    } else if (index >= 18) {
+                        type = 'genealogy';
+                    }
+                    originalStaticPages.push({
+                        html: child.outerHTML,
+                        type: type,
+                        index: index
+                    });
+                });
+            }
+
+            // تصفير الحاوية تصفير كامل لإعادة البناء الهيكلي المرتب والجميل
+            bookContainer.innerHTML = '';
+
+            // تقسيم الصفحات الديناميكية حسب الأبواب المخصصة لها
+            const dynamicByChapter = {
+                intro: [],
+                chapter1: [],
+                genealogy: [],
+                chapter2: [],
+                chapter3: [],
+                chapter4: []
+            };
+
             appState.addedPages.forEach(page => {
+                const chap = page.chapter || 'chapter1';
+                if (dynamicByChapter[chap]) {
+                    dynamicByChapter[chap].push(page);
+                } else {
+                    dynamicByChapter['chapter1'].push(page);
+                }
+            });
+
+            // أ. تمهيد ومقدمات الكتاب (المقدمات الثابتة)
+            originalStaticPages.forEach(p => {
+                if (p.type === 'intro') {
+                    const temp = document.createElement('div');
+                    temp.innerHTML = p.html;
+                    bookContainer.appendChild(temp.firstElementChild);
+                }
+            });
+            // الصفحات الديناميكية التابعة لـ تمهيد ومقدمات
+            dynamicByChapter.intro.forEach(page => {
                 renderAddedPage(page);
             });
 
-            // 3. استرجاع صور السير الشخصية (للشخصيات الافتراضية والجديدة المضافة)
+            // ب. الباب الأول: الجذور والرجال
+            // السير التابعة للباب الأول (الثابتة)
+            originalStaticPages.forEach(p => {
+                if (p.type === 'chapter1') {
+                    const temp = document.createElement('div');
+                    temp.innerHTML = p.html;
+                    bookContainer.appendChild(temp.firstElementChild);
+                }
+            });
+            // السير التابعة للباب الأول (الديناميكية)
+            dynamicByChapter.chapter1.forEach(page => {
+                renderAddedPage(page);
+            });
+
+            // ج. شجرة النسب المباركة والفرع
+            // الصفحات الثابتة لشجرة النسب
+            originalStaticPages.forEach(p => {
+                if (p.type === 'genealogy') {
+                    const temp = document.createElement('div');
+                    temp.innerHTML = p.html;
+                    bookContainer.appendChild(temp.firstElementChild);
+                }
+            });
+            // الصفحات الديناميكية للأنساب
+            dynamicByChapter.genealogy.forEach(page => {
+                renderAddedPage(page);
+            });
+
+            // د. الباب الثاني: العرف والنظام القبلي
+            if (dynamicByChapter.chapter2.length > 0) {
+                const coverPage = document.createElement('div');
+                coverPage.className = 'book-page cover-outer dynamic-chapter-cover';
+                coverPage.innerHTML = `
+                    <div class="cover-frame">
+                        <div class="cover-ornament">❖ ❖ ❖</div>
+                        <h1 class="cover-title" style="font-size: 38px; color: #800020; margin-top: 54px; font-family: 'Amiri', serif;">البَابُ الثَّانِي</h1>
+                        <div class="cover-subtitle" style="font-size: 26px; color: #c5a059; margin-top: 15px; font-family: 'Amiri', serif;">العرف والنظام القبلي</div>
+                        <div class="cover-ornament" style="margin-top: 25px;">❖ ❖ ❖</div>
+                    </div>
+                `;
+                bookContainer.appendChild(coverPage);
+
+                dynamicByChapter.chapter2.forEach(page => {
+                    renderAddedPage(page);
+                });
+            }
+
+            // هـ. الباب الثالث: الأرض والديار
+            if (dynamicByChapter.chapter3.length > 0) {
+                const coverPage = document.createElement('div');
+                coverPage.className = 'book-page cover-outer dynamic-chapter-cover';
+                coverPage.innerHTML = `
+                    <div class="cover-frame">
+                        <div class="cover-ornament">❖ ❖ ❖</div>
+                        <h1 class="cover-title" style="font-size: 38px; color: #800020; margin-top: 54px; font-family: 'Amiri', serif;">البَابُ الثَّالِث</h1>
+                        <div class="cover-subtitle" style="font-size: 26px; color: #c5a059; margin-top: 15px; font-family: 'Amiri', serif;">الأرض والديار والجغرافيا</div>
+                        <div class="cover-ornament" style="margin-top: 25px;">❖ ❖ ❖</div>
+                    </div>
+                `;
+                bookContainer.appendChild(coverPage);
+
+                dynamicByChapter.chapter3.forEach(page => {
+                    renderAddedPage(page);
+                });
+            }
+
+            // و. الباب الرابع: ملامح من زمان الأجداد
+            if (dynamicByChapter.chapter4.length > 0) {
+                const coverPage = document.createElement('div');
+                coverPage.className = 'book-page cover-outer dynamic-chapter-cover';
+                coverPage.innerHTML = `
+                    <div class="cover-frame">
+                        <div class="cover-ornament">❖ ❖ ❖</div>
+                        <h1 class="cover-title" style="font-size: 38px; color: #800020; margin-top: 54px; font-family: 'Amiri', serif;">البَابُ الرَّابِع</h1>
+                        <div class="cover-subtitle" style="font-size: 26px; color: #c5a059; margin-top: 15px; font-family: 'Amiri', serif;">ملامح من زمان الأجداد والتاريخ</div>
+                        <div class="cover-ornament" style="margin-top: 25px;">❖ ❖ ❖</div>
+                    </div>
+                `;
+                bookContainer.appendChild(coverPage);
+
+                dynamicByChapter.chapter4.forEach(page => {
+                    renderAddedPage(page);
+                });
+            }
+
+            // 4. استرجاع وتعيين صور السير الشخصية
             for (const id in appState.images) {
                 const container = document.getElementById(id);
                 if (container && appState.images[id]) {
@@ -1326,7 +1530,7 @@
                 }
             }
 
-            // 4. ربط معالجة الرفع التفاعلي لكل الصور الديناميكية المدرجة حديثاً
+            // 5. ربط تفاعل الرفع الفريد للصور في الصفحات الديناميكية المدرجة حديثاً
             const dynamicPlaceholders = document.querySelectorAll('#bookContainer .dynamic-page .image-placeholder');
             dynamicPlaceholders.forEach(el => {
                 const id = el.getAttribute('id');
@@ -1584,7 +1788,8 @@
                         const newPageObj = {
                             id: Date.now() + index + Math.floor(Math.random() * 1000), // معرف فريد ومتباعد
                             title: page.title || 'صفحة منسقة بالذكاء الاصطناعي',
-                            content: page.content || ''
+                            content: page.content || '',
+                            chapter: 'chapter1' // الافتراضي الباب الأول ويسكن مع التبويب الذكي
                         };
                         appState.addedPages.push(newPageObj);
                         summaryText += '• ' + newPageObj.title + '\n';
@@ -1617,10 +1822,98 @@
             }
         }
 
+        // ======= وظائف ترتيب وترتيب كامل الموسوعة بالذكاء الاصطناعي =======
+        function triggerAiOrganization() {
+            if (appState.addedPages.length === 0) {
+                alert('⚠️ لا توجد صفحات إضافية لشغلها وترتيبها حالياً في كتاب الموسوعة! يرجى إضافة صفحات جديدة أولاً لتتمكن من استخدام الترتيب الذكي للأبواب.');
+                return;
+            }
+
+            // إظهار تقدم العملية
+            document.getElementById('aiOrganizeBtn').disabled = true;
+            document.getElementById('aiOrgStatusContainer').classList.remove('hidden');
+            document.getElementById('aiOrgResultContainer').classList.add('hidden');
+
+            const pagesJsonStr = JSON.stringify(appState.addedPages);
+
+            if (window.AndroidDb && window.AndroidDb.organizeBookWithAi) {
+                try {
+                    window.AndroidDb.organizeBookWithAi(pagesJsonStr);
+                } catch(e) {
+                    alert('خطأ أثناء فك وتشفير جسر الذكاء الاصطناعي لإعادة فهرسة الكتاب: ' + e.message);
+                    resetOrgUi();
+                }
+            } else {
+                alert('⚠️ خاصية الترتيب والمجال الذكي تعمل حصرياً داخل تطبيق الأندرويد باستخدام ملقمات Gemini المدمجة.');
+                resetOrgUi();
+            }
+        }
+
+        function resetOrgUi() {
+            document.getElementById('aiOrganizeBtn').disabled = false;
+            document.getElementById('aiOrgStatusContainer').classList.add('hidden');
+        }
+
+        function onBookOrganized(isSuccess, responseText) {
+            resetOrgUi();
+
+            if (!isSuccess) {
+                if (responseText === 'API_KEY_MISSING') {
+                    alert('⚠️ مفتاح الذكاء الاصطناعي (GEMINI_API_KEY) لم يتم تهيئته بعد!\n\nيرجى فتح لوحة الأسرار (Secrets panel) في واجهة AI Studio وإضافة مفتاحك بالاسم GEMINI_API_KEY لكي يعمل بنجاح.');
+                } else {
+                    alert('❌ فشل معير الذكاء الاصطناعي لتصنيف الأبواب وفهرسة المخطوطة:\n' + responseText);
+                }
+                return;
+            }
+
+            try {
+                const organizedPages = JSON.parse(responseText);
+                if (Array.isArray(organizedPages)) {
+                    // تحديث مصفوفة الأوراق ببيانات الفصول المصنفة والمنظمة الجديدة من الذكاء الاصطناعي
+                    appState.addedPages = organizedPages;
+
+                    saveAppState();
+                    applyAppState();
+
+                    // إظهار صندوق النجاح الفوزي
+                    document.getElementById('aiOrgResultContainer').classList.remove('hidden');
+
+                    // انتقال عاجل وهادئ لصفحة القراءات
+                    setTimeout(() => {
+                        switchMainTab('read');
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }, 3000);
+                } else {
+                    alert('⚠️ تعذر تحليل قائمة الصفائح المنسقة من استجابة الذكاء الاصطناعي.');
+                }
+            } catch(e) {
+                console.error("Error parsing organized book AI JSON Response", e, responseText);
+                alert('خطأ أثناء معالجة وإدماج فهرس الكتاب المنظم من خوادم الذكاء الاصطناعي: ' + e.message);
+            }
+        }
+
         // التحميل الأولي عند جاهزية المتصفح
         window.addEventListener('DOMContentLoaded', () => {
+            // 1. استخلاص كلي واستنساخ للصفحات الثابتة لآل بن درويش لمنع الكتابة المتتالية
+            const bookContainer = document.getElementById('bookContainer');
+            if (bookContainer && originalStaticPages.length === 0) {
+                const kids = Array.from(bookContainer.children);
+                kids.forEach((child, index) => {
+                    let type = 'intro';
+                    if (index >= 8 && index <= 17) {
+                        type = 'chapter1';
+                    } else if (index >= 18) {
+                        type = 'genealogy';
+                    }
+                    originalStaticPages.push({
+                        html: child.outerHTML,
+                        type: type,
+                        index: index
+                    });
+                });
+            }
+
             loadAppState();
-            renumberAllPages();
         });
     </script>
 </body>
