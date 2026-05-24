@@ -1035,6 +1035,7 @@
             addedPages: []    // array of objects: { id, title, content }
         };
         let originalStaticPages = [];
+        let temporaryImageMap = {};
 
         // وظائف إدارة قسم فورم الإضافة البديهي الجديد
         let inlineImageBase64 = null;
@@ -1834,7 +1835,31 @@
             document.getElementById('aiOrgStatusContainer').classList.remove('hidden');
             document.getElementById('aiOrgResultContainer').classList.add('hidden');
 
-            const pagesJsonStr = JSON.stringify(appState.addedPages);
+            // تفريغ وحفظ خريطة الصور المؤقتة لتجنب إرسال base64 الضخم للذكاء الاصطناعي
+            temporaryImageMap = {};
+            let placeholderIndex = 0;
+
+            const cleanedPages = appState.addedPages.map(page => {
+                let contentString = page.content || '';
+                
+                // البحث واستبدال بيانات الصور الثنائية المباشرة (Base64)
+                const dataUriRegex = /data:image\/[a-zA-Z0-9.-]+;base64,[a-zA-Z0-9+/=]+/g;
+                contentString = contentString.replace(dataUriRegex, (match) => {
+                    const placeholder = `__IMAGE_REF_PLACEHOLDER_${placeholderIndex}__`;
+                    temporaryImageMap[placeholder] = match;
+                    placeholderIndex++;
+                    return placeholder;
+                });
+
+                return {
+                    id: page.id,
+                    title: page.title || '',
+                    content: contentString,
+                    chapter: page.chapter || 'chapter1'
+                };
+            });
+
+            const pagesJsonStr = JSON.stringify(cleanedPages);
 
             if (window.AndroidDb && window.AndroidDb.organizeBookWithAi) {
                 try {
@@ -1869,8 +1894,25 @@
             try {
                 const organizedPages = JSON.parse(responseText);
                 if (Array.isArray(organizedPages)) {
+                    // إعادة ترميم واستبدال معرّفات الصور بقيمها الثنائية الأصلية المخزنة لدينا
+                    const restoredPages = organizedPages.map(page => {
+                        let content = page.content || '';
+                        
+                        // استبدال كُل التواقيع المؤقتة للصور بالبيانات الحقيقية
+                        for (const placeholder in temporaryImageMap) {
+                            content = content.split(placeholder).join(temporaryImageMap[placeholder]);
+                        }
+                        
+                        return {
+                            id: page.id,
+                            title: page.title || 'صفحة مرتبة',
+                            content: content,
+                            chapter: page.chapter || 'chapter1'
+                        };
+                    });
+
                     // تحديث مصفوفة الأوراق ببيانات الفصول المصنفة والمنظمة الجديدة من الذكاء الاصطناعي
-                    appState.addedPages = organizedPages;
+                    appState.addedPages = restoredPages;
 
                     saveAppState();
                     applyAppState();
@@ -1889,6 +1931,9 @@
             } catch(e) {
                 console.error("Error parsing organized book AI JSON Response", e, responseText);
                 alert('خطأ أثناء معالجة وإدماج فهرس الكتاب المنظم من خوادم الذكاء الاصطناعي: ' + e.message);
+            } finally {
+                // تصفير مؤقت للخريطة لحماية الذاكرة
+                temporaryImageMap = {};
             }
         }
 

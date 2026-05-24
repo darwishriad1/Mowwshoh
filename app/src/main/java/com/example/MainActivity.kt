@@ -183,9 +183,9 @@ class WebDbInterface(private val context: Context, private val webView: WebView)
         Thread {
             try {
                 val okHttpClient = OkHttpClient.Builder()
-                    .connectTimeout(60, java.util.concurrent.TimeUnit.SECONDS)
-                    .readTimeout(60, java.util.concurrent.TimeUnit.SECONDS)
-                    .writeTimeout(60, java.util.concurrent.TimeUnit.SECONDS)
+                    .connectTimeout(180, java.util.concurrent.TimeUnit.SECONDS)
+                    .readTimeout(180, java.util.concurrent.TimeUnit.SECONDS)
+                    .writeTimeout(180, java.util.concurrent.TimeUnit.SECONDS)
                     .build()
 
                 val systemPrompt = "أنت مؤرخ خبير ومحرر أدبي رفيع لموسوعة 'آل بن درويش' التاريخية التراثية. مهمتك هي استلام المعلومات التاريخية أو السير أو الحكايات المدخلة، وإعادة صياغتها وتنظيمها وصقلها بلغة عربية فصحى وقورة وممتازة تليق بكتب الأنساب والتاريخ والتراث، ثم تقسيمها إلى صفحات متناسقة ومناسبة تماماً بحسب كمية وحجم المعلومات. يجب أن ترجع النتيجة كـ JSON Array من الصفحات، كل صفحة بها الحقول التالية بالدقة الحرفية:\n1. 'title': عنوان جزيل ومناسب للصفحة (مثال: 'مآثر آل بن درويش في الكرم' أو 'سيرة الشيخ عاطف بن طالب').\n2. 'content': النص السردي المكتوب بعناية فائقة مقسماً ومؤطراً داخل وسوم فقرات HTML قياسية <p>...</p> فقط لكي يظهر متباعداً وجميلاً بداخل الموسوعة.\nلا تضف أي نصوص أو شروح خارج مصفوفة الـ JSON."
@@ -311,9 +311,9 @@ class WebDbInterface(private val context: Context, private val webView: WebView)
         Thread {
             try {
                 val okHttpClient = OkHttpClient.Builder()
-                    .connectTimeout(60, java.util.concurrent.TimeUnit.SECONDS)
-                    .readTimeout(60, java.util.concurrent.TimeUnit.SECONDS)
-                    .writeTimeout(60, java.util.concurrent.TimeUnit.SECONDS)
+                    .connectTimeout(180, java.util.concurrent.TimeUnit.SECONDS)
+                    .readTimeout(180, java.util.concurrent.TimeUnit.SECONDS)
+                    .writeTimeout(180, java.util.concurrent.TimeUnit.SECONDS)
                     .build()
 
                 val systemPrompt = """
