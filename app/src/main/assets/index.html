@@ -185,7 +185,8 @@
                 margin: 0;
                 padding: 0;
             }
-            .settings-btn, .floating-buttons, .page-actions, .no-print { display: none !important; }
+            #bookContainer { display: block !important; }
+            #editSection, #settingsSection, .main-tabs-nav, .no-print, .floating-buttons, .page-actions, .settings-btn { display: none !important; }
             .book-page {
                 margin: 0;
                 padding: 25mm 20mm 20mm 25mm; /* نفس الهامش الأصلي في الطباعة */
@@ -491,6 +492,7 @@
 
     <div class="floating-buttons no-print">
         <button class="settings-btn" id="openModalBtn" title="محرر متكامل - إضافة صفحة جديدة">✎</button>
+        <button class="settings-btn" onclick="exportToPdf()" title="مشاركة أو طباعة الموسوعة كـ PDF" style="background-color: #c5a059; color: #800020;">📄</button>
     </div>
 
     <div id="addPageModal" class="modal">
@@ -668,6 +670,18 @@
                 </ul>
             </div>
 
+            <div style="background-color: #f7f3eb; border: 2.5px solid #c5a059; padding: 20px; border-radius: 8px; margin-bottom: 25px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.04);">
+                <h4 style="color: #800020; margin-bottom: 10px; font-weight: bold; font-size: 18px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                    <span>📄 تصدير الموسوعة كملف PDF مدمج</span>
+                </h4>
+                <p style="text-indent: 0; font-size: 14px; color: #555; margin-bottom: 15px; text-align: right; line-height: 1.6;">
+                    يمكنك الآن طباعة أو حفظ كامل الموسوعة التاريخية بجميع فروعها وصفحاتها المضافة وتنسيقها البروازي الذهبي كملف PDF عالي الجودة لمشاركتها مع آل بن درويش.
+                </p>
+                <button type="button" class="btn-submit-page" onclick="exportToPdf()" style="margin: 0 auto; display: inline-flex; justify-content: center; gap: 8px;">
+                    <span>تحويل ومشاركة الموسوعة كـ PDF 📄⏳</span>
+                </button>
+            </div>
+
             <div style="display: flex; flex-direction: column; gap: 15px;">
                 <div>
                     <h4 style="color: #800020; margin-bottom: 8px; font-weight: bold; font-size: 16px;">💾 تصدير واسترجاع البيانات:</h4>
@@ -698,6 +712,43 @@
     </div>
 
     <script>
+        // دالة لضغط وتصغير حجم الصور المرفوعة لتجنب مشكلات نفاد الذاكرة في أندرويد
+        function compressAndResizeImage(file, maxWidth, callback) {
+            if (!file || !file.type.startsWith('image/')) {
+                callback(null);
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    let width = img.width;
+                    let height = img.height;
+                    if (width > maxWidth) {
+                        height = Math.round((height * maxWidth) / width);
+                        width = maxWidth;
+                    }
+                    const canvas = document.createElement('canvas');
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    
+                    // تحويل الصورة بصيغة JPEG بجودة مضغوطة 0.7 تمنع حجم الميجابايت مع الحفاظ على المظهر
+                    const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
+                    callback(compressedBase64);
+                };
+                img.onerror = function() {
+                    callback(null);
+                };
+                img.src = e.target.result;
+            };
+            reader.onerror = function() {
+                callback(null);
+            };
+            reader.readAsDataURL(file);
+        }
+
         // تعريف وبنية البيانات لحفظ الحالة وتخزينها
         let appState = {
             images: {},       // id -> base64 string
@@ -728,13 +779,16 @@
             const file = input.files[0];
             const imgPreview = document.getElementById('inlineImagePreview');
             if (file && file.type.startsWith('image/')) {
-                const reader = new FileReader();
-                reader.onload = ev => {
-                    inlineImageBase64 = ev.target.result;
-                    imgPreview.src = ev.target.result;
-                    imgPreview.style.display = 'block';
-                };
-                reader.readAsDataURL(file);
+                compressAndResizeImage(file, 500, function(compressedBase64) {
+                    if (compressedBase64) {
+                        inlineImageBase64 = compressedBase64;
+                        imgPreview.src = compressedBase64;
+                        imgPreview.style.display = 'block';
+                    } else {
+                        inlineImageBase64 = null;
+                        imgPreview.style.display = 'none';
+                    }
+                });
             } else {
                 inlineImageBase64 = null;
                 imgPreview.style.display = 'none';
@@ -859,9 +913,11 @@
         document.getElementById('imageUploadLocal').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if(file && file.type.startsWith('image/')) {
-                const reader = new FileReader();
-                reader.onload = ev => document.execCommand('insertHTML', false, `<img src="${ev.target.result}" style="max-width:100%; margin:10px 0; border-radius:6px; box-shadow:0 2px 8px rgba(0,0,0,0.15)">`);
-                reader.readAsDataURL(file);
+                compressAndResizeImage(file, 600, function(compressedBase64) {
+                    if (compressedBase64) {
+                        document.execCommand('insertHTML', false, `<img src="${compressedBase64}" style="max-width:100%; margin:10px 0; border-radius:6px; box-shadow:0 2px 8px rgba(0,0,0,0.15)">`);
+                    }
+                });
             }
             this.value = '';
         });
@@ -877,21 +933,21 @@
             input.onchange = (e) => {
                 const file = e.target.files[0];
                 if(file && file.type.startsWith('image/')) {
-                    const reader = new FileReader();
-                    reader.onload = ev => {
-                        container.innerHTML = '';
-                        const img = document.createElement('img');
-                        img.src = ev.target.result;
-                        img.style.width = '100%';
-                        img.style.height = '100%';
-                        img.style.objectFit = 'cover';
-                        container.appendChild(img);
+                    compressAndResizeImage(file, 500, function(compressedBase64) {
+                        if (compressedBase64) {
+                            container.innerHTML = '';
+                            const img = document.createElement('img');
+                            img.src = compressedBase64;
+                            img.style.width = '100%';
+                            img.style.height = '100%';
+                            img.style.objectFit = 'cover';
+                            container.appendChild(img);
 
-                        // حفظ وتخزين الصورة في مخرجات التخزين المحلي
-                        appState.images[id] = ev.target.result;
-                        saveAppState();
-                    };
-                    reader.readAsDataURL(file);
+                            // حفظ وتخزين الصورة في مخرجات التخزين المحلي
+                            appState.images[id] = compressedBase64;
+                            saveAppState();
+                        }
+                    });
                 }
                 input.value = '';
             };
@@ -1234,6 +1290,14 @@
                 saveAppState();
                 alert('تمت إعادة تهيئة الذاكرة بالكامل وتنقيتها بنجاح! سيتم الآن إعادة تحميل الموسوعة.');
                 location.reload();
+            }
+        }
+
+        function exportToPdf() {
+            if (typeof AndroidDb !== 'undefined' && AndroidDb.printPdf) {
+                AndroidDb.printPdf();
+            } else {
+                window.print();
             }
         }
 

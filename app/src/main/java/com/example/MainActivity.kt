@@ -87,7 +87,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-class WebDbInterface(private val context: Context) {
+class WebDbInterface(private val context: Context, private val webView: WebView) {
     private val fileName = "darwish_app_state.json"
 
     @JavascriptInterface
@@ -115,6 +115,31 @@ class WebDbInterface(private val context: Context) {
         } catch (e: Exception) {
             e.printStackTrace()
             ""
+        }
+    }
+
+    @JavascriptInterface
+    fun printPdf() {
+        val mainHandler = android.os.Handler(android.os.Looper.getMainLooper())
+        mainHandler.post {
+            try {
+                var currentContext = context
+                while (currentContext is android.content.ContextWrapper) {
+                    if (currentContext is Activity) {
+                        break
+                    }
+                    currentContext = currentContext.baseContext
+                }
+                val activity = currentContext as? Activity
+                val printManager = (activity ?: context).getSystemService(Context.PRINT_SERVICE) as? android.print.PrintManager
+                if (printManager != null) {
+                    val jobName = "Darwish_Encyclopedia_Document"
+                    val printAdapter = webView.createPrintDocumentAdapter(jobName)
+                    printManager.print(jobName, printAdapter, android.print.PrintAttributes.Builder().build())
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
     }
 }
@@ -160,7 +185,7 @@ fun BookWebViewContainer(
                     }
                 }
                 
-                addJavascriptInterface(WebDbInterface(context), "AndroidDb")
+                addJavascriptInterface(WebDbInterface(context, this), "AndroidDb")
                 loadUrl("file:///android_asset/index.html")
             }
         },
