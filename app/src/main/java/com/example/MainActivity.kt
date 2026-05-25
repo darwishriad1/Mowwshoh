@@ -214,7 +214,7 @@ class WebDbInterface(private val context: Context, private val webView: WebView)
 
                 val mediaType = "application/json; charset=utf-8".toMediaTypeOrNull()
                 val body = requestJson.toString().toRequestBody(mediaType)
-                val url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=$apiKey"
+                val url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=$apiKey"
 
                 val request = Request.Builder()
                     .url(url)
@@ -356,7 +356,7 @@ class WebDbInterface(private val context: Context, private val webView: WebView)
 
                 val mediaType = "application/json; charset=utf-8".toMediaTypeOrNull()
                 val body = requestJson.toString().toRequestBody(mediaType)
-                val url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=$apiKey"
+                val url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=$apiKey"
 
                 val request = Request.Builder()
                     .url(url)
