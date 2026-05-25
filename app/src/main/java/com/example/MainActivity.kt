@@ -96,6 +96,52 @@ class MainActivity : ComponentActivity() {
 class WebDbInterface(private val context: Context, private val webView: WebView) {
     private val fileName = "darwish_app_state.json"
 
+    private fun parseApiError(response: okhttp3.Response): String {
+        val code = response.code
+        val rawBody = try {
+            response.body?.string() ?: ""
+        } catch (e: Exception) {
+            ""
+        }
+        
+        var apiMessage = ""
+        var apiStatus = ""
+        if (rawBody.isNotEmpty()) {
+            try {
+                val json = JSONObject(rawBody)
+                val errorObj = json.optJSONObject("error")
+                if (errorObj != null) {
+                    apiMessage = errorObj.optString("message", "")
+                    apiStatus = errorObj.optString("status", "")
+                }
+            } catch (e: Exception) {
+                // Ignore parsing error
+            }
+        }
+
+        val customAdvice = when (code) {
+            400 -> " (حجم المستند كبير جداً أو مشكلة في تهيئة المدخلات)"
+            403 -> {
+                if (apiMessage.contains("API key not valid", ignoreCase = true) || apiStatus.contains("INVALID_ARGUMENT", ignoreCase = true)) {
+                    " (رمز 403: مفتاح API غير صالح أو غير معرّف أو منتهي الصلاحية. يرجى مراجعة لوحة الأسرار وصيانته)"
+                } else if (apiMessage.contains("location", ignoreCase = true) || apiMessage.contains("supported", ignoreCase = true)) {
+                    " (رمز 403: منطقتك الحالية أو هذا الموقع غير مدعوم لاستدعاء هذا النموذج أو مفتاحك مقيد جغرافياً)"
+                } else if (apiMessage.contains("disabled", ignoreCase = true) || apiMessage.contains("enable", ignoreCase = true) || apiMessage.contains("disabled", ignoreCase = true)) {
+                    " (رمز 403: الخدمة أو 'Generative Language API' غير مفعلة لمشروع هذا المفتاح في غوغل كلاود)"
+                } else {
+                    " (رمز 403: الوصول مرفوض من قبل الملقم، يرجى التأكد من صلاحيات المفتاح ومستوى الاستهلاك)"
+                }
+            }
+            404 -> " (رمز 404: لم يتم العثور على النموذج المحدد على خوادم غوغل)"
+            429 -> " (رمز 429: تم تجاوز معدل الطلبات المتاح لمفتاحك، يرجى الانتظار دقيقة واحدة ثم إعادة المحاولة)"
+            else -> ""
+        }
+
+        val baseMsg = "خطأ من ملقم الذكاء الاصطناعي رمز: $code"
+        val detailMsg = if (apiMessage.isNotEmpty()) "\\nتفاصيل إضافية: $apiMessage" else ""
+        return "$baseMsg$customAdvice$detailMsg".replace("'", "\\'").replace("\"", "\\\"").replace("\n", "\\n")
+    }
+
     private fun findActivity(ctx: Context): Activity? {
         var currentContext = ctx
         while (currentContext is android.content.ContextWrapper) {
@@ -266,7 +312,7 @@ class WebDbInterface(private val context: Context, private val webView: WebView)
                         }
                     }
                 } else {
-                    val errMsg = "خطأ من ملقم الذكاء الاصطناعي رمز: ${response.code}"
+                    val errMsg = parseApiError(response)
                     mainHandler.post {
                         webView.evaluateJavascript(
                             "javascript:onAiPagesGenerated(false, '$errMsg')",
@@ -407,7 +453,7 @@ class WebDbInterface(private val context: Context, private val webView: WebView)
                         }
                     }
                 } else {
-                    val errMsg = "خطأ من ملقم الذكاء الاصطناعي رمز: ${response.code}"
+                    val errMsg = parseApiError(response)
                     mainHandler.post {
                         webView.evaluateJavascript(
                             "javascript:onBookOrganized(false, '$errMsg')",
