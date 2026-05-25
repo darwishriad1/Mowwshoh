@@ -357,25 +357,49 @@ class WebDbInterface(private val context: Context, private val webView: WebView)
         Thread {
             try {
                 val okHttpClient = OkHttpClient.Builder()
-                    .connectTimeout(60, java.util.concurrent.TimeUnit.SECONDS)
-                    .readTimeout(60, java.util.concurrent.TimeUnit.SECONDS)
-                    .writeTimeout(60, java.util.concurrent.TimeUnit.SECONDS)
+                    .connectTimeout(120, java.util.concurrent.TimeUnit.SECONDS)
+                    .readTimeout(120, java.util.concurrent.TimeUnit.SECONDS)
+                    .writeTimeout(120, java.util.concurrent.TimeUnit.SECONDS)
                     .build()
 
+                // Parse the original pages and prepare simplified versions with content snippets
+                val originalPagesArray = JSONArray(pagesJson)
+                val originalPagesMap = mutableMapOf<String, JSONObject>()
+                val simplifiedPages = JSONArray()
+
+                for (i in 0 until originalPagesArray.length()) {
+                    val pageObj = originalPagesArray.getJSONObject(i)
+                    val id = pageObj.optString("id", "")
+                    if (id.isNotEmpty()) {
+                        originalPagesMap[id] = pageObj
+                        
+                        val simplifiedPage = JSONObject().apply {
+                            put("id", id)
+                            put("title", pageObj.optString("title", ""))
+                            val rawContent = pageObj.optString("content", "")
+                            // Clean up HTML tags and use only a snippet of content to save tons of tokens and speed up classification
+                            val plainText = rawContent.replace("<[^>]*>".toRegex(), "")
+                            val snippet = if (plainText.length > 300) plainText.substring(0, 300) + "..." else plainText
+                            put("content_preview", snippet)
+                        }
+                        simplifiedPages.put(simplifiedPage)
+                    }
+                }
+
                 val systemPrompt = """
-                    أنت خبير فني ومؤرخ في تنظيم وتبويب المخطوطات والكتب التاريخية الكبرى لقبيلة آل بن درويش العمري.
-                    مهمتك السامية هي استلام مصفوفة صفحات الكتاب المدخلة بصيغة JSON، قراءة عنوان ومحتوى كل صفحة بدقة، ثم القيام بما يلي:
-                    1. تصنيف كل صفحة تلقائياً في المكان الأنسب لها بوضع قيمة مفتاح 'chapter' لتكون واحدة من القيم التالية حصراً:
+                    أنت خبير فني ومؤرخ في تنظيم وتبويب المخطوطات والكتب التاريخية الكبرى لقيمة آل بن درويش العمري.
+                    مهمتك السامية هي استلام مصفوفة صفحات الكتاب المبسطة المدخلة بصيغة JSON، قراءة عنوان الصفحة ومخلص محتواها (content_preview) بدقة، ثم القيام بما يلي:
+                    1. تصنيف كل صفحة تلقائياً بوضع قيمة مفتاح 'chapter' لتكون واحدة من القيم التالية حصراً:
                        - 'intro' (تمهيد ومقدمات ومراجعات الكتاب العامة)
                        - 'chapter1' (الباب الأول: الجذور والرجال - مخصص لتراجم وسير فرسان ورموز آل بن درويش)
-                       - 'genealogy' (شجرة النسب والفرع - لتوثيقات النسب وسلاسل الأجداد والفروع)
-                       - 'chapter2' (الباب الثاني: العرف والنظام القبلي - للعهود، المواثيق، الدساتير والأنظمة الداخلية)
-                       - 'chapter3' (الباب الثالث: الأرض والديار - للجغرافيا، مواطن الأجداد بيافع، الحصون والأراضي التاريخية)
-                       - 'chapter4' (الباب الرابع: ملامح من زمان الأجداد - للحكايات القديمة، المعارك، البطولات والمآثر التاريخية المروية)
-                    2. إعادة ترتيب الصفحات بشكل منطقي وسلس ومتسلسل يضمن انتقال القارئ بينها بانسجام.
-                    3. صقل العناوين والمحتويات بلطف وإتقان لإعطائها طابعاً جليلاً ووقوراً فصيحاً دون تدمير التفاصيل الأصلية.
-                    4. يجب إرجاع النتيجة كمصفوفة JSON صالحة بالكامل ومطابقة للمصفوفة المدخلة، مع تزويد كل صفحة بحقل 'chapter' المحدث وجعلها مرتبة ترتيباً صحيحاً.
-                    لا تضف أي شرح أو تنسيق خارج مصفوفة الـ JSON على الإطلاق.
+                       - 'genealogy' (شجرة النسب والفرع)
+                       - 'chapter2' (الباب الثاني: العرف والنظام القبلي)
+                       - 'chapter3' (الباب الثالث: الأرض والديار)
+                       - 'chapter4' (الباب الرابع: ملامح من زمان الأجداد)
+                    2. إعادة ترتيب الصفحات بشكل منطعي وسلس ومتسلسل يضمن انتقال القارئ بينها بانسجام.
+                    3. صقل العناوين وتجميلها بلغة عربية فصيحة إذا لزم الأمر في حقل 'title'.
+                    4. لتجنب تجاوز الحجم ونفاد الوقت (Timeout) وضمان مضاهاة البيانات الأصلية بشكل آمن، قم بإرجاع النتيجة كمصفوفة JSON تحتوي فقط على الحقول التالية لكل صفحة: 'id' و 'title' و 'chapter'، بالترتيب الجديد المطلوب. لا تضمن حقل 'content' أو 'content_preview' في الاستجابة أبداً.
+                    لا تضف أي نصوص أو شروح خارج مصفوفة الـ JSON على الإطلاق.
                 """.trimIndent()
 
                 val requestJson = JSONObject().apply {
@@ -383,7 +407,7 @@ class WebDbInterface(private val context: Context, private val webView: WebView)
                         put(JSONObject().apply {
                             put("parts", JSONArray().apply {
                                 put(JSONObject().apply {
-                                    put("text", pagesJson)
+                                    put("text", simplifiedPages.toString())
                                 })
                             })
                         })
@@ -423,7 +447,38 @@ class WebDbInterface(private val context: Context, private val webView: WebView)
                         val textResult = firstPart?.optString("text")
 
                         if (!textResult.isNullOrEmpty()) {
-                            val escapedText = textResult
+                            // Reconstruct the original pages using Gemini's ordering and classification
+                            val aiResponseArray = JSONArray(textResult)
+                            val finalOrganizedList = JSONArray()
+                            val processedIds = mutableSetOf<String>()
+
+                            for (i in 0 until aiResponseArray.length()) {
+                                val aiItem = aiResponseArray.optJSONObject(i) ?: continue
+                                val id = aiItem.optString("id", "")
+                                if (id.isNotEmpty() && originalPagesMap.containsKey(id)) {
+                                    val originalPage = originalPagesMap[id]!!
+                                    val updatedPage = JSONObject().apply {
+                                        put("id", id)
+                                        put("title", aiItem.optString("title", originalPage.optString("title", "")))
+                                        put("content", originalPage.optString("content", ""))
+                                        put("chapter", aiItem.optString("chapter", "intro"))
+                                    }
+                                    finalOrganizedList.put(updatedPage)
+                                    processedIds.add(id)
+                                }
+                            }
+
+                            // Defensive: add back any pages that Gemini missed/omitted by accident so no data is ever lost
+                            for (i in 0 until originalPagesArray.length()) {
+                                val originalPage = originalPagesArray.getJSONObject(i)
+                                val id = originalPage.optString("id", "")
+                                if (id.isNotEmpty() && !processedIds.contains(id)) {
+                                    finalOrganizedList.put(originalPage)
+                                }
+                            }
+
+                            val resultStr = finalOrganizedList.toString()
+                            val escapedText = resultStr
                                 .replace("\\", "\\\\")
                                 .replace("'", "\\'")
                                 .replace("\"", "\\\"")
